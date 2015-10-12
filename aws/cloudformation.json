@@ -7,9 +7,7 @@
     },
     "EcsInstanceCount": {
       "Type": "Number",
-      "Default": "5",
-      "MinValue": "3",
-      "MaxValue": "10"
+      "Default": "5"
     },
     "KeyPairName": {
       "Type": "AWS::EC2::KeyPair::KeyName"
@@ -48,6 +46,54 @@
   "Resources": {
     "EcsCluster": {
       "Type": "AWS::ECS::Cluster"
+    },
+    "ZookeeperTaskDefinition": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Memory": 128,
+            "PortMappings": [
+              {
+                "HostPort": 2181,
+                "ContainerPort": 2181
+              },
+              {
+                "HostPort": 2888,
+                "ContainerPort": 2888
+              },
+              {
+                "HostPort": 3888,
+                "ContainerPort": 3888
+              }
+            ],
+            "Name": "zk",
+            "Image": "ogavrisevs/zookeeper-aws:latest",
+            "Cpu": 256
+          }
+        ],
+        "Volumes": []
+      }
+    },
+    "ZookeeperEcsService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": "EcsCluster",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Timeout": "PT30M"
+        }
+      },
+      "Properties": {
+        "Cluster": {
+          "Ref": "EcsCluster"
+        },
+        "DesiredCount": {
+          "Ref": "EcsInstanceCount"
+        },
+        "TaskDefinition": {
+          "Ref": "ZookeeperTaskDefinition"
+        }
+      }
     },
     "EcsSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
@@ -363,8 +409,13 @@
           },
           "Install": {
             "packages": {
+              "rpm": {
+                "mesosphere": "http://repos.mesosphere.io/el/6/noarch/RPMS/mesosphere-el-repo-6-2.noarch.rpm"
+              },
               "yum": {
-                "htop": []
+                "htop": [],
+                "aws-cli": [],
+                "java-1.8.0-openjdk": []
               }
             }
           },
