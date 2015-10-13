@@ -8,9 +8,8 @@ RUN pip install awscli
 
 # https://www.apache.org/mirrors/dist.html
 RUN curl -fL http://apache.mirror.digitalpacific.com.au/zookeeper/stable/zookeeper-3.4.6.tar.gz | tar xzf - -C /opt && \
-mv /opt/zookeeper-3.4.6 /opt/zookeeper
-
-VOLUME /tmp/zookeeper
+    mv /opt/zookeeper-3.4.6 /opt/zookeeper && \
+    mkdir /opt/zookeeper/data
 
 COPY entrypoint.sh /
 

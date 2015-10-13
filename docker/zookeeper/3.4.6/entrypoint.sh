@@ -6,7 +6,7 @@ cat > /opt/zookeeper/conf/zoo.cfg <<EOF
 tickTime=2000
 initLimit=10
 syncLimit=5
-dataDir=/opt/zookeeper
+dataDir=/opt/zookeeper/data
 clientPort=2181
 EOF
 
@@ -18,7 +18,7 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     ID=`echo $line | cut -d \. -f 4`
     echo "server.$ID=$line:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
     if [ "$IP" == "$line" ]; then
-        echo "$ID" > /opt/zookeeper/myid
+        echo "$ID" > /opt/zookeeper/data/myid
     fi
 done < /tmp/zk-nodes
 
