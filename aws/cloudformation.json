@@ -34,7 +34,7 @@
     },
     "AMIs": {
       "eu-west-1": {
-        "EcsLinux": "ami-2aaef35d"
+        "EcsLinux": "ami-6b12271c"
       }
     },
     "IPs": {
