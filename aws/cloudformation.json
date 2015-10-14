@@ -47,54 +47,6 @@
     "EcsCluster": {
       "Type": "AWS::ECS::Cluster"
     },
-    "ZookeeperTaskDefinition": {
-      "Type": "AWS::ECS::TaskDefinition",
-      "Properties": {
-        "ContainerDefinitions": [
-          {
-            "Memory": 128,
-            "PortMappings": [
-              {
-                "HostPort": 2181,
-                "ContainerPort": 2181
-              },
-              {
-                "HostPort": 2888,
-                "ContainerPort": 2888
-              },
-              {
-                "HostPort": 3888,
-                "ContainerPort": 3888
-              }
-            ],
-            "Name": "zk",
-            "Image": "ogavrisevs/zookeeper-aws:latest",
-            "Cpu": 256
-          }
-        ],
-        "Volumes": []
-      }
-    },
-    "ZookeeperEcsService": {
-      "Type": "AWS::ECS::Service",
-      "DependsOn": "EcsCluster",
-      "CreationPolicy": {
-        "ResourceSignal": {
-          "Timeout": "PT30M"
-        }
-      },
-      "Properties": {
-        "Cluster": {
-          "Ref": "EcsCluster"
-        },
-        "DesiredCount": {
-          "Ref": "EcsInstanceCount"
-        },
-        "TaskDefinition": {
-          "Ref": "ZookeeperTaskDefinition"
-        }
-      }
-    },
     "EcsSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -415,7 +367,18 @@
               "yum": {
                 "htop": [],
                 "aws-cli": [],
-                "java-1.8.0-openjdk": []
+                "java-1.8.0-openjdk": [],
+                "wget": []
+              }
+            },
+            "commands": {
+              "zookeeper-1": {
+                "command": "/usr/bin/docker rm -f zk",
+                "ignoreErrors": "true"
+              },
+              "zookeeper-2": {
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always -p 3888:3888 -p 2888:2888 -p 2181:2181 --name=zk ogavrisevs/zookeeper-aws:latest",
+                "ignoreErrors": "true"
               }
             }
           },

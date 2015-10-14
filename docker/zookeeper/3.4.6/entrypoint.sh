@@ -16,11 +16,9 @@ aws --region eu-west-1 ec2 describe-instances | jq -r -S ".Reservations[].Instan
 
 while IFS='' read -r line || [[ -n "$line" ]]; do
     ID=`echo $line | cut -d \. -f 4`
+    echo "server.$ID=$line:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
     if [ "$IP" == "$line" ]; then
         echo "$ID" > /opt/zookeeper/data/myid
-        echo "server.$ID=localhost:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
-    else
-        echo "server.$ID=$line:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
     fi
 done < /tmp/zk-nodes
 
