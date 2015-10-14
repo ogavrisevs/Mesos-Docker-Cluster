@@ -355,22 +355,38 @@
         "AWS::CloudFormation::Init": {
           "configSets": {
             "InstallAndRun": [
-              "Install",
-              "Configure"
+              "configure-docker-engine",
+              "install_common",
+              "run-zookeeper",
+              "run-mesos-master",
+              "install-run-mesos-slave",
+              "run-marathon",
+              "run-chronos"
+            ],
+            "mesos-master": [
+              "run-mesos-master"
+            ],
+            "mesos-slave": [
+              "install-run-mesos-slave"
+            ],
+            "marathon": [
+              "run-marathon"
+            ],
+            "chronos": [
+              "run-chronos"
             ]
           },
-          "Install": {
+          "install_common": {
             "packages": {
-              "rpm": {
-                "mesosphere": "http://repos.mesosphere.io/el/6/noarch/RPMS/mesosphere-el-repo-6-2.noarch.rpm"
-              },
               "yum": {
                 "htop": [],
                 "aws-cli": [],
                 "java-1.8.0-openjdk": [],
                 "wget": []
               }
-            },
+            }
+          },
+          "run-zookeeper": {
             "commands": {
               "zookeeper-1": {
                 "command": "/usr/bin/docker rm -f zk",
@@ -382,7 +398,60 @@
               }
             }
           },
-          "Configure": {
+          "run-mesos-master": {
+            "commands": {
+              "mesos-master-1": {
+                "command": "/usr/bin/docker rm -f mesos_master",
+                "ignoreErrors": "true"
+              },
+              "mesos-master-2": {
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=mesos_master -e \"MESOS_ZK=zk://localhost:2181/mesos\" -e \"MESOS_QUORUM=2\"  -e \"MESOS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" -e \"MESOS_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" mesoscloud/mesos-master:0.24.1-centos-7 --log_dir=/var/log/mesos --registry=in_memory",
+                "ignoreErrors": "true"
+              }
+            }
+          },
+          "install-run-mesos-slave": {
+            "packages": {
+              "rpm": {
+                "mesosphere": "http://repos.mesosphere.io/el/6/noarch/RPMS/mesosphere-el-repo-6-2.noarch.rpm"
+              },
+              "yum": {
+                "mesos": []
+              }
+            },
+            "commands": {
+              "mesos-slave-1": {
+                "command": "nohup mesos-slave --master=zk://localhost:2181/mesos --containerizers=\"docker,mesos\" --hostname=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"  0<&- &>/dev/null &",
+                "ignoreErrors": "true"
+              }
+            }
+          },
+          "run-marathon": {
+            "commands": {
+              "marathon-1": {
+                "command": "/usr/bin/docker rm -f marathon",
+                "ignoreErrors": "true"
+              },
+              "marathon-2": {
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=marathon -p 8080:8080 -e \"MARATHON_HOSTNAME=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"\" -e \"MARATHON_MASTER=zk://localhost:2181/mesos\" -e \"MARATHON_ZK=zk://localhost:2181/marathon\" mesoscloud/marathon:0.11.0-centos-7",
+                "ignoreErrors": "true"
+              }
+            }
+          },
+          "run-chronos": {
+            "commands": {
+              "chronos-1": {
+                "command": "/usr/bin/docker rm -f chronos",
+                "ignoreErrors": "true"
+              },
+              "chronos-2": {
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=chronos -e \"CHRONOS_ZK_HOSTS=zk://localhost:2181\"
+                -e \"CHRONOS_MASTER=zk://localhost:2181/mesos\" -e \"CHRONOS_HTTP_PORT=4400\" -e \"CHRONOS_HOSTNAME=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"\" mesoscloud/chronos:2.4.0-centos-7",
+                "ignoreErrors": "true"
+              }
+            }
+          },
+          "configure-docker-engine": {
             "services": {
               "sysvinit": {
                 "docker": {
