@@ -17,6 +17,10 @@
     },
     "SubnetList": {
       "Type": "List<AWS::EC2::Subnet::Id>"
+    },
+    "AllowedConnectionsFrom": {
+      "Type": "String",
+      "Default": "10.0.0.0/8"
     }
   },
   "Mappings": {
@@ -35,11 +39,6 @@
     "AMIs": {
       "eu-west-1": {
         "EcsLinux": "ami-6b12271c"
-      }
-    },
-    "IPs": {
-      "DirectConnect": {
-        "UK": "10.0.0.0/8"
       }
     }
   },
@@ -60,11 +59,7 @@
             "FromPort": "22",
             "ToPort": "22",
             "CidrIp": {
-              "Fn::FindInMap": [
-                "IPs",
-                "DirectConnect",
-                "UK"
-              ]
+              "Ref": "AllowedConnectionsFrom"
             }
           },
           {
@@ -72,11 +67,63 @@
             "FromPort": "8080",
             "ToPort": "8080",
             "CidrIp": {
-              "Fn::FindInMap": [
-                "IPs",
-                "DirectConnect",
-                "UK"
-              ]
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "4400",
+            "ToPort": "4400",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5050",
+            "ToPort": "5051",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3888",
+            "ToPort": "3888",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "2888",
+            "ToPort": "2888",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "2181",
+            "ToPort": "2181",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "51678",
+            "ToPort": "51678",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "31000",
+            "ToPort": "40000",
+            "CidrIp": {
+              "Ref": "AllowedConnectionsFrom"
             }
           }
         ],
@@ -359,7 +406,7 @@
               "install_common",
               "run-zookeeper",
               "run-mesos-master",
-              "install-run-mesos-slave",
+              "run-mesos-slave",
               "run-marathon",
               "run-chronos"
             ],
@@ -367,13 +414,19 @@
               "run-mesos-master"
             ],
             "mesos-slave": [
-              "install-run-mesos-slave"
+              "run-mesos-slave"
             ],
             "marathon": [
               "run-marathon"
             ],
             "chronos": [
               "run-chronos"
+            ],
+            "configure-docker-engine": [
+              "configure-docker-engine"
+            ],
+            "install_common": [
+              "install_common"
             ]
           },
           "install_common": {
@@ -405,23 +458,19 @@
                 "ignoreErrors": "true"
               },
               "mesos-master-2": {
-                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=mesos_master -e \"MESOS_ZK=zk://localhost:2181/mesos\" -e \"MESOS_QUORUM=2\"  -e \"MESOS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" -e \"MESOS_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" mesoscloud/mesos-master:0.24.1-centos-7 --log_dir=/var/log/mesos --registry=in_memory",
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=mesos_master -e \"MESOS_ZK=zk://localhost:2181/mesos\" -e \"MESOS_QUORUM=2\" -e \"MESOS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" -e \"MESOS_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\" -e \"MESOS_LOG_DIR=/var/log/mesos\" -e \"MESOS_REGISTRY=in_memory\" -e \"MESOS_CLUSTER=MesosCluster\" mesoscloud/mesos-master:0.24.1-centos-7 ",
                 "ignoreErrors": "true"
               }
             }
           },
-          "install-run-mesos-slave": {
-            "packages": {
-              "rpm": {
-                "mesosphere": "http://repos.mesosphere.io/el/6/noarch/RPMS/mesosphere-el-repo-6-2.noarch.rpm"
-              },
-              "yum": {
-                "mesos": []
-              }
-            },
+          "run-mesos-slave": {
             "commands": {
               "mesos-slave-1": {
-                "command": "nohup mesos-slave --master=zk://localhost:2181/mesos --containerizers=\"docker,mesos\" --hostname=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"  0<&- &>/dev/null &",
+                "command": "/usr/bin/docker rm -f mesos_slave",
+                "ignoreErrors": "true"
+              },
+              "mesos-slave-2": {
+                "command": "/usr/bin/docker run -d --name mesos_slave --net=host --privileged=true --restart always -e \"MESOS_HOSTNAME=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"\" -e \"MESOS_MASTER=zk://localhost:2181/mesos\" -e \"MESOS_ZK=zk://localhost:2181/marathon\" -e \"MESOS_EXECUTOR_REGISTRATION_TIMEOUT=10mins\" -e \"MESOS_LOG_DIR=/var/log/mesos\" -v /cgroup:/cgroup -v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker mesoscloud/mesos-slave:0.24.1-centos-7",
                 "ignoreErrors": "true"
               }
             }
@@ -445,8 +494,7 @@
                 "ignoreErrors": "true"
               },
               "chronos-2": {
-                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=chronos -e \"CHRONOS_ZK_HOSTS=zk://localhost:2181\"
-                -e \"CHRONOS_MASTER=zk://localhost:2181/mesos\" -e \"CHRONOS_HTTP_PORT=4400\" -e \"CHRONOS_HOSTNAME=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"\" mesoscloud/chronos:2.4.0-centos-7",
+                "command": "/usr/bin/docker run -d --privileged --net=host --restart always --name=chronos -e \"CHRONOS_ZK_HOSTS=zk://localhost:2181\" -e \"CHRONOS_MASTER=zk://localhost:2181/mesos\" -e \"CHRONOS_HTTP_PORT=4400\" -e \"CHRONOS_HOSTNAME=\"$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4/)\"\" mesoscloud/chronos:2.4.0-centos-7",
                 "ignoreErrors": "true"
               }
             }
