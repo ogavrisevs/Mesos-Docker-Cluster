@@ -1,0 +1,9 @@
+[digital-ocean:children]
+docker-01
+docker-02
+
+[docker-01]
+46.101.75.33
+
+[docker-02]
+178.62.126.13
