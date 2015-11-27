@@ -1,48 +1,37 @@
 
 ---
 
-- hosts: digital-ocean
+#- hosts: nodes
+- hosts: nodes
   remote_user: root
   vars:
-    server_list: "{% for host in groups['digital-ocean'] %}{{ host }},{% endfor %}localhost"
+    server_list: "{{ groups[\"nodes\"] | join(\",\") }}"
   tasks:
-#  - name: install pip
-#    apt:
-#      name: python-pip
-#  - name: install python dep
-#    pip:
-#      name: docker-py
-#      version: 1.1.0
+  - name: install pip
+    apt:
+      name: python-pip
+  - name: install python dep
+    pip:
+      name: docker-py
+      version: 1.1.0
 
-  - name: run docker zookeeper
+  - name: remove old zookeeper docker
     docker:
       name: zk
       image: mesoscloud/zookeeper:3.4.6-centos-7
       state: absent
+    tags:
+      - docker
 
   - name: run docker zookeeper
     docker:
       name: zk
       image: mesoscloud/zookeeper:3.4.6-centos-7
-      state: started
-      restart_policy: always
+      state: reloaded
+       restart_policy: always
       net: host
-      #privileged: true
-      #publish_all_ports: true
-      #ports:
-      #  - "2181:2181"
-      #  - "2888:2888"
-      #  - "3888:3888"
-      #expose:
-      #  - "2181:2181"
-      #  - "2888:2888"
-      #  - "3888:3888"
       env:
-        MYID: "{{ 256 |random }}"
+        MYID: "{{ 255 |random }}"
         SERVERS: "{{ server_list }}"
-
-#docker rm -f zk
-#docker run -d --name=zk --net=host  -e MYID=1 -e SERVERS=46.101.75.33,178.62.126.13 mesoscloud/zookeeper:3.4.6-centos-7
-
-#docker rm -f zk
-#docker run -d --name=zk --net=host  -e MYID=2 -e SERVERS=46.101.75.33,178.62.126.13,localhost mesoscloud/zookeeper:3.4.6-centos-7
+    tags:
+      - docker

@@ -1,9 +1,13 @@
-[digital-ocean:children]
-docker-01
-docker-02
+[nodes:children]
+node-01
+node-02
+node-03
 
-[docker-01]
-46.101.75.33
+[node-01]
+46.101.34.21
 
-[docker-02]
-178.62.126.13
+[node-02]
+46.101.73.31
+
+[node-03]
+46.33.22.11
