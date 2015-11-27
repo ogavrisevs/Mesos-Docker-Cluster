@@ -6,6 +6,7 @@
   remote_user: root
   vars:
     server_list: "{{ groups[\"nodes\"] | join(\",\") }}"
+    server_idx: "{% for node in groups[\"nodes\"] %}{% if  node == inventory_hostname%}{{ loop.index }}{% endif %}{% endfor %}"
   tasks:
   - name: install pip
     apt:
@@ -28,10 +29,10 @@
       name: zk
       image: mesoscloud/zookeeper:3.4.6-centos-7
       state: reloaded
-       restart_policy: always
+      restart_policy: always
       net: host
       env:
-        MYID: "{{ 255 |random }}"
+        MYID: "{{ server_idx }}"
         SERVERS: "{{ server_list }}"
     tags:
       - docker
