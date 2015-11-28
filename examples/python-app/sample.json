@@ -1,0 +1,70 @@
+{
+  "id": "/examples/bridged-webapp",
+  "cmd": "python3 -m http.server 8080",
+  "cpus": 0.5,
+  "mem": 64,
+  "ports": [
+    9000
+  ],
+  "instances": 3,
+  "acceptedResourceRoles": null,
+  "args": null,
+  "backoffFactor": 1.15,
+  "backoffSeconds": 1,
+  "constraints": [],
+  "container": {
+    "docker": {
+      "forcePullImage": true,
+      "image": "python:3",
+      "network": "BRIDGE",
+      "parameters": [],
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 0,
+          "protocol": "tcp",
+          "servicePort": 9000
+        }
+      ],
+      "privileged": false
+    },
+    "type": "DOCKER",
+    "volumes": []
+  },
+  "dependencies": [],
+  "deployments": [],
+  "disk": 0,
+  "env": {},
+  "executor": "",
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "portIndex": 0,
+      "path": "/",
+      "gracePeriodSeconds": 5,
+      "intervalSeconds": 20,
+      "maxConsecutiveFailures": 3
+    }
+  ],
+  "labels": {
+    "environment": "staging"
+  },
+  "maxLaunchDelaySeconds": 3600,
+  "requirePorts": false,
+  "storeUrls": [],
+  "tasksHealthy": 0,
+  "tasksRunning": 1,
+  "tasksStaged": 0,
+  "tasksUnhealthy": 0,
+  "upgradeStrategy": {
+    "maximumOverCapacity": 1,
+    "minimumHealthCapacity": 1
+  },
+  "uris": [],
+  "user": null,
+  "version": "2015-11-28T14:28:56.265Z",
+  "versionInfo": {
+    "lastConfigChangeAt": "2015-11-28T14:28:56.265Z",
+    "lastScalingAt": "2015-11-28T14:28:56.265Z"
+  }
+}
