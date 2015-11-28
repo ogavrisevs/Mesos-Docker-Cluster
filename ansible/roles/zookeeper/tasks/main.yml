@@ -1,0 +1,33 @@
+---
+
+  - name: install pip
+    apt:
+      name: python-pip
+      update_cache: yes
+  - name: install python dep
+    pip:
+      name: docker-py
+      version: 1.1.0
+
+  - name: remove old zookeeper docker
+    docker:
+      name: zk
+      image: mesoscloud/zookeeper:3.4.6-centos-7
+      state: absent
+    tags:
+      - docker
+      - zookeeper
+
+  - name: run docker zookeeper
+    docker:
+      name: zk
+      image: mesoscloud/zookeeper:3.4.6-centos-7
+      state: reloaded
+      restart_policy: always
+      net: host
+      env:
+        MYID: "{{ server_idx }}"
+        SERVERS: "{{ server_list }}"
+    tags:
+      - docker
+      - zookeeper

@@ -1,0 +1,4 @@
+---
+
+  server_list: "{{ groups[\"nodes\"] | join(\",\") }}"
+  server_idx: "{% for node in groups[\"nodes\"] %}{% if  node == inventory_hostname %}{{ loop.index }}{% endif %}{% endfor %}"

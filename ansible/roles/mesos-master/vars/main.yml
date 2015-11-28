@@ -1,0 +1,3 @@
+---
+
+  zk_nodes: "{% for node in groups[\"nodes\"] %}{{node}}:2181{% if not loop.last %},{% endif %}{% endfor %}"

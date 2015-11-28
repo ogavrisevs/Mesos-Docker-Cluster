@@ -1,0 +1,19 @@
+---
+
+  - name: run docker chronos
+    docker:
+      name: chronos
+      image: mesoscloud/chronos:2.4.0-centos-7
+      state: reloaded
+      restart_policy: always
+      net: host
+      env:
+        CHRONOS_ZK_HOSTS: "{{ zk_nodes }}"
+        CHRONOS_MASTER: "zk://{{ zk_nodes }}/mesos"
+        CHRONOS_HTTP_PORT: "4400"
+        CHRONOS_HOSTNAME: "{{ inventory_hostname }}"
+      ports:
+        - "4400:4400"
+    tags:
+      - docker
+      - chronos

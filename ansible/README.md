@@ -1,3 +1,8 @@
+Run Ansible provisioning
+------------------------
+
+    ansible-playbook -i hosts playbook.yml
+
 Get docker droplet ins Digital Ocean
 ------------------------------------
 

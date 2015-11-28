@@ -1,38 +1,26 @@
-
 ---
 
-#- hosts: nodes
-- hosts: nodes
-  remote_user: root
-  vars:
-    server_list: "{{ groups[\"nodes\"] | join(\",\") }}"
-    server_idx: "{% for node in groups[\"nodes\"] %}{% if  node == inventory_hostname%}{{ loop.index }}{% endif %}{% endfor %}"
-  tasks:
-  - name: install pip
-    apt:
-      name: python-pip
-  - name: install python dep
-    pip:
-      name: docker-py
-      version: 1.1.0
+  - hosts: nodes
+    remote_user: root
+    roles:
+      - zookeeper
 
-  - name: remove old zookeeper docker
-    docker:
-      name: zk
-      image: mesoscloud/zookeeper:3.4.6-centos-7
-      state: absent
-    tags:
-      - docker
+  - hosts: node-01
+    remote_user: root
+    roles:
+      - mesos-master
 
-  - name: run docker zookeeper
-    docker:
-      name: zk
-      image: mesoscloud/zookeeper:3.4.6-centos-7
-      state: reloaded
-      restart_policy: always
-      net: host
-      env:
-        MYID: "{{ server_idx }}"
-        SERVERS: "{{ server_list }}"
-    tags:
-      - docker
+  - hosts: nodes
+    remote_user: root
+    roles:
+      - mesos-slave
+
+  - hosts: node-01
+    remote_user: root
+    roles:
+      - marathon
+
+  - hosts: node-01
+    remote_user: root
+    roles:
+      - chronos

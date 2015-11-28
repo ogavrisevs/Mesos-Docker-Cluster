@@ -1,0 +1,20 @@
+---
+
+  - name: run docker mesos master
+    docker:
+      name: mesos-master
+      image: mesoscloud/mesos-master:0.24.1-centos-7
+      state: reloaded
+      restart_policy: always
+      net: host
+      env:
+        MESOS_ZK: "zk://{{ zk_nodes }}/mesos"
+        MESOS_QUORUM: 1
+        MESOS_HOSTNAME: "{{ inventory_hostname }}"
+        MESOS_IP: "{{ inventory_hostname }}"
+        MESOS_LOG_DIR: "/var/log/mesos"
+        MESOS_REGISTRY: "in_memory"
+        MESOS_CLUSTER: "MesosCluster"
+    tags:
+      - docker
+      - master

@@ -1,0 +1,20 @@
+---
+
+  - name: run docker marathon
+    docker:
+      name: marathon
+      image: mesoscloud/marathon:0.11.0-centos-7
+      state: reloaded
+      #restart_policy: always
+      privileged: true
+      net: host
+      env:
+        MARATHON_HOSTNAME: "{{ inventory_hostname }}"
+        MARATHON_HTTP_ADDRESS: "{{ inventory_hostname }}"
+        MARATHON_MASTER: "zk://{{ zk_nodes }}/mesos"
+        MARATHON_ZK: "zk://{{ zk_nodes }}/marathon"
+      ports:
+        - "8080:8080"
+    tags:
+      - docker
+      - marathon
