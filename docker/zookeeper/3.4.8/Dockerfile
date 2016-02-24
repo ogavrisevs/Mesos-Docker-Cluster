@@ -7,8 +7,8 @@ RUN yum install -y python-pip jq
 RUN pip install awscli
 
 # https://www.apache.org/mirrors/dist.html
-RUN curl -fL http://apache.mirror.digitalpacific.com.au/zookeeper/stable/zookeeper-3.4.6.tar.gz | tar xzf - -C /opt && \
-    mv /opt/zookeeper-3.4.6 /opt/zookeeper && \
+RUN curl -fL http://apache.mirror.digitalpacific.com.au/zookeeper/stable/zookeeper-3.4.8.tar.gz | tar xzf - -C /opt && \
+    mv /opt/zookeeper-3.4.8 /opt/zookeeper && \
     mkdir /opt/zookeeper/data
 
 COPY entrypoint.sh /
